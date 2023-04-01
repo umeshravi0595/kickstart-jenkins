@@ -52,7 +52,25 @@ pipeline {
           tags: 'setup, update, configure, start',
           limit: 'crm-stg-app-1'
         )
-      }
+        ansiblePlaybook (
+          credentialsId: 'ansible-node-ssh',
+          disableHostKeyChecking: true,
+          inventory: '/opt/kickstart-ansible/inventory/prd',
+          playbook: '/opt/kickstart-ansible/playbook/redis.yml',
+          // extras: '-e {"redis":{"version":"4.0.8"}}',
+          tags: 'setup, configure, start'
+        )
+        ansiblePlaybook (
+          credentialsId: 'ansible-node-ssh',
+          disableHostKeyChecking: true,
+          inventory: '/opt/kickstart-ansible/inventory/prd',
+          playbook: '/opt/kickstart-ansible/playbook/app.yml',
+          // extras: '-e {"app":{"environment":"prd"}}',
+          tags: 'setup, update, configure, start',
+          limit: 'crm-prd-app-1'
+        )
+  }
+}
       post {
         always {
           emailext (
@@ -67,9 +85,9 @@ pipeline {
             deleteDirs: true,
             disableDeferredWipeout: true
           )
-          input 'Congrats! The deployment on staging environment is successful. Do you want to start deployment on production environment?'
+          input 'Congrats! The deployment on production environment is successful. Do you want to start deployment on production environment?'
         }
       }
     }
   }
-}
+
